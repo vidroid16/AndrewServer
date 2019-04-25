@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement />
+  <nodes>
+    <node x="459.0" y="1264.0">com</node>
+    <node x="817.0" y="575.0">ControlCenter</node>
+    <node x="839.0" y="1190.0">netscape</node>
+    <node x="383.5" y="575.0">EyeDamager</node>
+    <node x="239.0" y="0.0">HotelPlaces</node>
+    <node x="0.0" y="1190.0">toolbarButtonGraphics</node>
+    <node x="0.0" y="212.0">Laundary</node>
+    <node x="1186.9856972586413" y="173.1799761620979">Gender</node>
+    <node x="345.0" y="698.0">Soap</node>
+    <node x="750.0" y="1264.0">sun</node>
+    <node x="454.0" y="1190.0">groovyjarjarasm</node>
+    <node x="606.0" y="1264.0">java</node>
+    <node x="309.0" y="1264.0">javax</node>
+    <node x="156.0" y="1264.0">javafx</node>
+    <node x="712.0" y="324.0">Stuff</node>
+    <node x="605.1168057210962" y="10.724672228844042">Food</node>
+    <node x="870.75" y="0.0">Human</node>
+    <node x="1010.0" y="1190.0">images</node>
+    <node x="0.0" y="1264.0">oracle</node>
+    <node x="581.0" y="575.0">Eyes</node>
+    <node x="893.0" y="1264.0">org</node>
+    <node x="1190.4195470798568" y="-1.373063170440787">Color</node>
+    <node x="1020.0" y="335.5">Guest</node>
+    <node x="-136.53158522050057" y="12.452920143027598">Portmone</node>
+    <node x="233.0" y="124.0">Apartment</node>
+    <node x="662.0" y="1190.0">META-INF</node>
+    <node x="1035.0" y="1264.0">jdk</node>
+    <node x="1172.0" y="1190.0">groovy</node>
+    <node x="1074.0" y="575.0">Pos</node>
+    <node x="-157.81048867699621" y="250.9511323003577">Luxority</node>
+    <node x="458.0" y="212.0">Kitchen</node>
+    <node x="1071.0" y="982.0">groovyjarjarcommonscli</node>
+    <node x="244.0" y="1190.0">groovyjarjarantlr</node>
+    <node x="838.532777115614" y="810.9034564958284">Main</node>
+    <node x="-100.23837902264597" y="483.40286054827175">Hotel</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="Stuff" target="Human">
+      <point x="0.0" y="-93.0" />
+      <point x="856.0" y="299.0" />
+      <point x="941.25" y="299.0" />
+      <point x="-70.5" y="137.0" />
+    </edge>
+    <edge source="Guest" target="Human">
+      <point x="0.0" y="-81.5" />
+      <point x="1167.5" y="299.0" />
+      <point x="1082.25" y="299.0" />
+      <point x="70.5" y="137.0" />
+    </edge>
+    <edge source="Kitchen" target="HotelPlaces">
+      <point x="0.0" y="-115.0" />
+      <point x="562.5" y="99.0" />
+      <point x="399.8333333333333" y="99.0" />
+      <point x="64.33333333333331" y="37.0" />
+    </edge>
+    <edge source="Laundary" target="HotelPlaces">
+      <point x="0.0" y="-115.0" />
+      <point x="106.5" y="99.0" />
+      <point x="271.1666666666667" y="99.0" />
+      <point x="-64.33333333333331" y="37.0" />
+    </edge>
+    <edge source="Apartment" target="HotelPlaces">
+      <point x="0.0" y="-203.0" />
+      <point x="0.0" y="37.0" />
+    </edge>
+    <edge source="Soap" target="EyeDamager">
+      <point x="0.0" y="-92.5" />
+      <point x="0.0" y="36.5" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="0.5786206896551725" x="511.2252681764003" y="416.55065554231214" />
+  <SelectedNodes />
+  <Categories>
+    <Category>Fields</Category>
+    <Category>Constructors</Category>
+    <Category>Methods</Category>
+    <Category>Properties</Category>
+    <Category>Inner Classes</Category>
+  </Categories>
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+
