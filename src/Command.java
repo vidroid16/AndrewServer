@@ -1,38 +1,27 @@
+import Udp.MyPackage;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Iterator;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Класс обрабатывающий комманды для работы с коллекцией
  */
 public class Command {
-    /**
-     * Файловый контроллер
-     */
-    FileController controller;
 
-    /**
-     * Конструктор
-     * @param controller Файловый контроллер
-     */
-    Command(FileController controller){
-        this.controller = controller;
-    }
-
+    private int userId;
     /**
      * Парсит комманду введенную пользователем, разбивая ее на аргументы, и выполняет ее
      * @param com комманда введенная пользователем
      * @return false
      */
-    public boolean parceCommand(String com) {
+    public MyPackage parceCommand(int userId, String com) {
+        this.userId = userId;
         String jsonRegexp = "\\{\"patronymic\":\"(.+)\",\"name\":\"(.+)\",\"photo\":\\{\"isColored\":(true|false),\"width\":(\\d+),\"link\":\"(.+)\",\"height\":(\\d+)},\"sername\":\"(.+)\",\"ID\":(\\d+),\"birthDate\":\\{\"month\":\"(.+)\",\"year\":(\\d+),\"day\":(\\d+)}}";
         String insertRegexp = "insert \\{\\d+} \\{" + jsonRegexp + "\\}";
         String elementCmdRegexp = "(add_if_min|remove|add_if_max|remove_lower) \\{"+ jsonRegexp + "\\}";
@@ -64,10 +53,8 @@ public class Command {
             case "exit": return exit();
             case "start": return start();
             default:
-                System.out.println("Неверная команда!");
+               return new MyPackage(404, userId, "Ошибка, введена неверная комманда".getBytes());
         }
-
-        return false;
     }
 
     /**
@@ -75,15 +62,15 @@ public class Command {
      * @param arguments аргументы комманды
      * @return false
      */
-    public boolean add_if_min(String[] arguments){
-        Passport minPassport = Collections.min(controller.getCollection().values());
-        Passport passport = new Passport(new JSONObject(arguments[0]));
-        if(passport.compareTo(minPassport) < 0){
-            controller.getCollection().put(passport.hashCode(), passport);
+    public MyPackage add_if_min(String[] arguments){
+        ArrayList<Passport> userPassports = (ArrayList<Passport>) Main.hashtable.entrySet().stream().filter(p->p.getValue().equals(userId)).map(p->p.getKey()).collect(Collectors.toList());
+        Passport minPassport = Collections.min(userPassports);
+        Passport newPassport = new Passport(new JSONObject(arguments[1]));
+        if(newPassport.compareTo(minPassport)<0){
+            Main.hashtable.put(newPassport, userId);
         }
-        controller.updateFile();
-        System.out.println("Сделано!");
-        return false;
+        MyPackage myPackage = new MyPackage(1,userId,"Комманда успешно выполнена".getBytes());
+        return myPackage;
     }
 
     /**
@@ -91,15 +78,15 @@ public class Command {
      * @param arguments аргументы комманды
      * @return false
      */
-    public boolean add_if_max(String[] arguments){
-        Passport maxPassport = Collections.max(controller.getCollection().values());
-        Passport passport = new Passport(new JSONObject(arguments[0]));
-        if(passport.compareTo(maxPassport) > 0){
-            controller.getCollection().put(passport.hashCode(), passport);
+    public MyPackage add_if_max(String[] arguments){
+        ArrayList<Passport> userPassports = (ArrayList<Passport>) Main.hashtable.entrySet().stream().filter(p->p.getValue().equals(userId)).map(p->p.getKey()).collect(Collectors.toList());
+        Passport maxPassport = Collections.max(userPassports);
+        Passport newPassport = new Passport(new JSONObject(arguments[1]));
+        if(newPassport.compareTo(maxPassport)>0){
+            Main.hashtable.put(newPassport, userId);
         }
-        controller.updateFile();
-        System.out.println("Сделано!");
-        return false;
+        MyPackage myPackage = new MyPackage(2,userId,"Комманда успешно выполнена".getBytes());
+        return myPackage;
     }
 
     /**
@@ -107,16 +94,15 @@ public class Command {
      * @param arguments аргументы комманды
      * @return false
      */
-    public boolean insert(String[] arguments) {
+    public MyPackage insert(String[] arguments) {//todo
+        ArrayList<Passport> userPassports = (ArrayList<Passport>) Main.hashtable.entrySet().stream().filter(p->p.getValue().equals(userId)).map(p->p.getKey()).collect(Collectors.toList());
         Passport passport = new Passport(new JSONObject(arguments[1]));
-        ArrayList<Passport> passports = new ArrayList<>();
-        controller.getCollection().forEach((k,v) -> passports.add(v));
-        passports.add(Integer.parseInt(arguments[0]), passport);
-        controller.getCollection().clear();
-        passports.forEach(p -> controller.getCollection().put(p.hashCode(),p));
-        controller.updateFile();
-        System.out.println("Сделано!");
-        return false;
+        userPassports.add(Integer.parseInt(arguments[0]), passport);
+        List<Map.Entry<Passport, Integer>> collect = Main.hashtable.entrySet().stream().filter(p -> !p.getValue().equals(userId)).collect(Collectors.toList());
+        Main.hashtable.clear();
+        collect.forEach(p->Main.hashtable.put(p.getKey(), p.getValue()));
+        userPassports.forEach(p-> Main.hashtable.put(p, userId));
+        return new MyPackage(3,userId,"Комманда успешно выполнена".getBytes());
     }
 
     /**
@@ -124,66 +110,66 @@ public class Command {
      * @param arguments аргументы комманды
      * @return false
      */
-    public boolean remove(String[] arguments){
+    public MyPackage remove(String[] arguments){
         Passport passport = new Passport(new JSONObject(arguments[0]));
-        controller.getCollection().remove(passport.hashCode());
-        System.out.println("Сделано!");
-        controller.updateFile();
-        return false;
+        ArrayList<Passport> userPassports = (ArrayList<Passport>) Main.hashtable.entrySet().stream().filter(p->p.getValue().equals(userId) && !p.getKey().equals(passport)).map(p->p.getKey()).collect(Collectors.toList());
+        List<Map.Entry<Passport, Integer>> collect = Main.hashtable.entrySet().stream().filter(p -> !p.getValue().equals(userId)).collect(Collectors.toList());
+        Main.hashtable.clear();
+        collect.forEach(p->Main.hashtable.put(p.getKey(), p.getValue()));
+        userPassports.forEach(p-> Main.hashtable.put(p, userId));
+        return new MyPackage(4,userId,"Комманда успешно выполнена".getBytes());
     }
 
     /**
      * вывести в стандартный поток вывода все элементы коллекции в строковом представлении
      * @return false
      */
-    public boolean show(){
-        controller.getCollection().forEach((k,v) -> System.out.println(v.toString()));
-        System.out.println("Сделано!");
-        return false;
+    public MyPackage show(){
+        ArrayList<Passport> userPassports = (ArrayList<Passport>) Main.hashtable.entrySet().stream().filter(p->p.getValue().equals(userId)).map(p->p.getKey()).collect(Collectors.toList());
+        String result = "";
+        userPassports.forEach((k) -> result.concat(" " + k.toString()));
+        return new MyPackage(5,userId,result.getBytes());
     }
 
     /**
      * Выйти из программы
      * @return false
      */
-    public boolean exit(){
-        System.out.println("Завершение работы программы!");
-        System.exit(0);
-        return false;
+    public MyPackage exit(){
+        return new MyPackage(6, userId,"Комманда успешно выполнена".getBytes());
     }
 
     /**
      * Вывести в информацию о коллекции
      * @return false
      */
-    public boolean info(){
+    public MyPackage info(){//done
         try(ByteArrayOutputStream byteObject = new ByteArrayOutputStream();
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteObject)) {
-            objectOutputStream.writeObject(controller.getCollection());
-            System.out.println(String.format(
+            ArrayList<Passport> userPassports = (ArrayList<Passport>) Main.hashtable.entrySet().stream().filter(p->p.getValue().equals(userId)).map(p->p.getKey()).collect(Collectors.toList());
+            objectOutputStream.writeObject(userPassports);
+            String rez = String.format(
                     "Тип коллекции: %s \nТип элементов коллекции: %s\nДата инициализации: %s\nКоличество элементов: %s\nРазмер: %s байт\n",
-                    controller.getCollection().getClass().getName(),
-                    "Passport", new Date().toString(), controller.getCollection().size(), byteObject.toByteArray().length
-            ));
-            System.out.println("Сделано!");
+                    userPassports.getClass().getName(),
+                    "Passport", new Date().toString(), userPassports.size(), byteObject.toByteArray().length
+            );
+            return new MyPackage(7,userId,rez.getBytes());
         } catch (IOException e) {
-            System.err.println("Ошибка при определении размера памяти коллекции.");
+            return new MyPackage(404, userId, "Ошибка при определении размера памяти коллекции.".getBytes());
         }
-        return false;
     }
 
     /**
      * Запуск симмуляции
      * @return true - если в коллекции достаточное количество элементов для запуска симмуляции (3 и больше)
      */
-    public boolean start(){
-        if(controller.getCollection().size() >=3){
-            System.out.println("Сделано!");
-            return true;
+    public MyPackage start(){//done
+        ArrayList<Passport> userPassports = (ArrayList<Passport>) Main.hashtable.entrySet().stream().filter(p->p.getValue().equals(userId)).map(p->p.getKey()).collect(Collectors.toList());
+        if(userPassports.size() >=3){
+            return new MyPackage(8, userId, "Комманда выполнена успешно".getBytes());
         }
         else{
-            System.out.println("Недостаточно элементов в коллекции!");
-            return false;
+            return new MyPackage(404, userId, "Произошла ошибка: недостаточно элементов в коллекции".getBytes());
         }
     }
 
@@ -191,9 +177,8 @@ public class Command {
      * Выводит справку по коммандам
      * @return false
      */
-    public boolean help(){
-        System.out.println(
-                "add_if_min {element}: добавить новый элемент в коллекцию, если его значение меньше, чем у наименьшего элемента этой коллекции\n" +
+    public MyPackage help(){
+        String rez = "add_if_min {element}: добавить новый элемент в коллекцию, если его значение меньше, чем у наименьшего элемента этой коллекции\n" +
                 "remove {String key}: удалить элемент из коллекции по его ключу\n" +
                 "show: вывести в стандартный поток вывода все элементы коллекции в строковом представлении\n" +
                 "add_if_max {element}: добавить новый элемент в коллекцию, если его значение превышает значение наибольшего элемента этой коллекции\n" +
@@ -201,9 +186,8 @@ public class Command {
                 "insert {String key} {element}: добавить новый элемент с заданным ключом\n" +
                 "remove_lower {element}: удалить из коллекции все элементы, меньшие, чем заданный\n" +
                 "Пример json элемента:\n\n" +
-                "{\"patronymic\":\"Юрьевич\",\"name\":\"Андрей\",\"photo\":{\"isColored\":true,\"width\":228,\"link\":\"https://vk.com/android16\",\"height\":187},\"sername\":\"Шаля\",\"ID\":67,\"birthDate\":{\"month\":\"Apr\",\"year\":2019,\"day\":15}}");
-        System.out.println("Сделано!");
-        return false;
+                "{\"patronymic\":\"Юрьевич\",\"name\":\"Андрей\",\"photo\":{\"isColored\":true,\"width\":228,\"link\":\"https://vk.com/android16\",\"height\":187},\"sername\":\"Шаля\",\"ID\":67,\"birthDate\":{\"month\":\"Apr\",\"year\":2019,\"day\":15}}";
+        return new MyPackage(9, userId, rez.getBytes());
     }
 
     /**

@@ -1,96 +1,64 @@
-import org.json.JSONArray;
-import org.json.XML;
+import Udp.Client;
+import Udp.MyPackage;
+import Udp.Server;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.NoSuchElementException;
-import java.util.Scanner;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.channels.DatagramChannel;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.charset.Charset;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class Main {
 
-    public class ProgramStarter{
-
-        String[] params;
-
-        public ProgramStarter(String[] args){
-            params = args;
-        }
-
-        public void start(){
-
-            class Neznaika extends Guest{
-                public Neznaika(Eyes eyes, Gender gender, Portmone budget, Passport passport) {
-                    super("Незнайка", eyes, gender, budget, passport);
-                }
-            }
-
-            Apartment a1 = new Apartment(Luxority.Econom1, 1408);
-            Apartment a2 = new Apartment(Luxority.Econom2, 3111);
-            Hotel hotel = new Hotel("Raddison","Moscow", a1, a2);
-
-            Guest g1 = new Neznaika(new Eyes(Color.White), Gender.Other, new Portmone((int)(Math.random()*200)),new Passport("", "", "", null) );
-
-            Guest g2 = new Guest("Гриша", new Eyes(Color.White), Gender.Other, new Portmone((int)(Math.random()*200)),new Passport("", "", "", null));
-            // А вот и анонимный класс спрятался
-            Stuff g3 = new Stuff("Винтик", new Eyes(Color.White), Gender.Other, new Portmone((int)(Math.random()*200)),200,new Passport("", "", "", null)){};
-            hotel.hireStuff(g3);
-            g1.chooseAparts(hotel, Luxority.Econom2, g1, g2);
-            g2.go(hotel, a2);
-            g3.go(hotel, a2);
-            Food pizza = new Food("Пицца", 10);
-            a2.usePult().Eat(pizza, g2, g3);
-            a2.usePult().Eat(hotel.getKitchen().getFood().get((int)(Math.random()*hotel.getKitchen().getFood().size())), g2, hotel.getStuff().get(0));
-            a2.usePult().Eat(hotel.getKitchen().getFood().get((int)(Math.random()*hotel.getKitchen().getFood().size())), g2, hotel.getStuff().get(0));
-            a1.usePult().Eat(hotel.getKitchen().getFood().get((int)(Math.random()*hotel.getKitchen().getFood().size())), g1, hotel.getStuff().get(0));
-            a1.usePult().Eat(hotel.getKitchen().getFood().get((int)(Math.random()*hotel.getKitchen().getFood().size())), g1, hotel.getStuff().get(0));
-            g1.damageEyes(new Soap( Color.Red, (int)(Math.random()*20)));
-            a1.usePult().Iron((int)(Math.random()*25+1),g2,g3 );
-
-        }
-
-    }
-
+    public static Hashtable<Passport, Integer> hashtable = new Hashtable<>();
+    public static ByteBuffer buffer = ByteBuffer.allocate((Integer.MAX_VALUE/2)-1);
+    public static ArrayList<Integer> userIds = new ArrayList<>();
     public static void main(String[] args) {
-        //new Main().new ProgramStarter(args).start();
-        /*Passport NeznaikaPassport = new Passport("Незнайка", "Незнайкович", "Незнайкович", new Photo(true, 13, 666, "neznaika.com"));
-        Passport GrishaPassport = new Passport("Григорий", "Путин", "Владимирович", new Photo(false, 1999, 2019, "gov.com"));
-        Passport KozlikPassport = new Passport("Винтик", "Цаль", "Богданович", new Photo(false, 7000, 3232, "arthas.com"));
-        Passport MyPassport = new Passport("Андрей", "Шаля", "Юрьевич", new Photo(true, 187, 228, "https://vk.com/android16"));
-        Passport TrumpPassport = new Passport("Donald", "Thrump", "Obamovich", new Photo(true, 24, 102, "https://vk.com/trumpchmod"));
-
-        Hashtable<Integer, Passport> table = new Hashtable<>();
-        table.put(MyPassport.hashCode(), MyPassport);
-        table.put(KozlikPassport.hashCode(), KozlikPassport);
-        table.put(GrishaPassport.hashCode(), GrishaPassport);
-        table.put(NeznaikaPassport.hashCode(), NeznaikaPassport);
-
-        FileController controller = new FileController("file.xml");
-        controller.writeCollection(table);*/
-
         Scanner scanner = new Scanner(System.in);
         FileController controller = new FileController("file.xml");
-        Command cmd = new Command(controller);
-        System.out.println("Введите help для получения справки по командам");
-        while (true) {
-            try {
-                if (controller.isFileExists()) {
-                    if (cmd.parceCommand(scanner.nextLine()))
-                        new Main().new ProgramStarter(args).start();
-                }
-                else{
-                    System.out.println("Файл не найден!!!");
-                }
-
-            } catch (NoSuchElementException e) {
-                System.out.println("Завершение программы!");
-                System.exit(0);
-
-            }
+        Command cmd = new Command();
+        if(args.length == 0){
+            System.out.println("Введите порт (порт не был введен)");
+            System.exit(228);
         }
+
+        try {
+            int port  = Integer.parseInt(args[0]);
+            Selector selector = Selector.open();
+            DatagramChannel datagramChannel = DatagramChannel.open();
+            datagramChannel.configureBlocking(false);
+            datagramChannel.socket().bind(new InetSocketAddress(port));
+            datagramChannel.register(selector, SelectionKey.OP_READ);
+
+            while(true){
+                if(selector.select(3000) == 0){
+                    System.out.println(".");
+                    continue;
+                }
+                Iterator<SelectionKey> iterator = selector.selectedKeys().iterator();
+                while(iterator.hasNext()){
+                    SelectionKey key = iterator.next();
+                    if(key.isReadable()){
+                        hadleRead(key);//todo
+                    }
+                    if(key.isWritable()){
+                        handleWrite();//todo
+                    }
+                    iterator.remove();
+                }
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
     public static class ProgramPauser{
         public static void pause(String message){
@@ -109,6 +77,28 @@ public class Main {
                 e.printStackTrace();
             }
         }
+    }
+    public void hadleRead(SelectionKey selectionKey){
+        DatagramChannel channel = (DatagramChannel)selectionKey.channel();
+        Client client = new Client();
+        selectionKey.attach(client);
+        try {
+            SocketAddress clientSocketAdress = channel.receive(buffer);
+            client.setSocketAddress(clientSocketAdress);
+            MyPackage recievedPackage = new MyPackage(buffer.array());
+            buffer.clear();
+            setUserId(recievedPackage);
+            Command command = new Command();
+            MyPackage myPackage = command.parceCommand(recievedPackage.getUserId(), new String(recievedPackage.getData(), Charset.defaultCharset()));
+            client.setMyPackage(recievedPackage);
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public void setUserId(MyPackage myPackage){
+        myPackage.setUserId(userIds.size() + 1);
     }
 }
 
