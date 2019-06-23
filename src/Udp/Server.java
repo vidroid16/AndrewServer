@@ -11,7 +11,7 @@ public class Server {
     public void on() {
         try {
             Selector selector = Selector.open();
-            DatagramChannel dc
+
         } catch (IOException e) {
             e.printStackTrace();
         }

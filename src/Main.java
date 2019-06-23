@@ -49,7 +49,7 @@ public class Main {
                         hadleRead(key);//todo
                     }
                     if(key.isWritable()){
-                        handleWrite();//todo
+                       // handleWrite();//todo
                     }
                     iterator.remove();
                 }
@@ -78,7 +78,7 @@ public class Main {
             }
         }
     }
-    public void hadleRead(SelectionKey selectionKey){
+    public static void hadleRead(SelectionKey selectionKey){
         DatagramChannel channel = (DatagramChannel)selectionKey.channel();
         Client client = new Client();
         selectionKey.attach(client);
@@ -97,7 +97,7 @@ public class Main {
             e.printStackTrace();
         }
     }
-    public void setUserId(MyPackage myPackage){
+    public static void setUserId(MyPackage myPackage){
         myPackage.setUserId(userIds.size() + 1);
     }
 }
