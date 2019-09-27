@@ -51,7 +51,10 @@ public class DBController {
         for(Pair<Integer,String> keyPair : costumeKeys){
             connector.execSQLQuery("SELECT * FROM ");
         }
-
+    //TODO: ДОПИСАТЬ
+        return null;
     }
+
+    //TODO: все что говорил
 
 }
