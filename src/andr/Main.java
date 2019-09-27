@@ -161,6 +161,17 @@ public class Main {
             e.printStackTrace();
         }
     }
+
+    public static int strHashCode(String str){
+        int result = 13;
+        int prime = 26;
+        for (int i = 0; i < str.length(); i++) {
+            result = result * prime + (int)str.charAt(i) * (int)Math.pow(prime, i + 1);
+        }
+        return result;
+    }
+
+
     public static void setUserId(MyPackage myPackage){
         myPackage.setUserId(userIds.size() + 1);
     }
