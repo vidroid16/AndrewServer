@@ -4,7 +4,7 @@ import java.sql.*;
 
 public class JDBCConnector extends DBConfigs {
 
-    private final String DB_URL = "jdbc:postgresql://"+dbHost+":"+dbPort+"/" + dbName;
+    private final String DB_URL = "jdbc:postgresql://"+dbHost+ ((dbPort.length() != 0) ? (":"+dbPort) : "") +"/" + dbName;
     private final String USER = dbUser;
     private final String PASS = dbPassword;
 
@@ -20,16 +20,16 @@ public class JDBCConnector extends DBConfigs {
                 Class.forName("org.postgresql.Driver");
                 connection = DriverManager.getConnection(DB_URL, USER, PASS);
                 loadingPrinter.stop();
-                System.out.println("\nСоединение с БД установлено!");
+                System.out.println("\nConnected to data base!");
                 break;
             } catch (ClassNotFoundException e) {
-                System.err.println("Ошибка JDBC драйвер не найден!");
+                System.err.println("Error: JDBC driver was not found!");
                 System.exit(1);
             } catch (SQLException e) {
                 if (e.getSQLState().equals("08001")) {
                     if(firstCreation) {
-                        System.out.println("Ошибка: невозможно подключиться к серверу БД, так как сервер не доступен!");
-                        System.out.println("Попытка подключения:");
+                        System.out.println("Error: can not connect to data base server, because it isn't access!");
+                        System.out.println("Try to connect:");
                         new Thread(loadingPrinter::printLoadingLine).start();
                         firstCreation = false;
                     }
@@ -39,6 +39,13 @@ public class JDBCConnector extends DBConfigs {
         
 	//TODO: Строки с запросами sql на создание необходимых таблиц а затем выполнение этих запросов с помощью execSQLUpdate(...);
 
+
+        String users_table = String.format("CREATE TABLE IF NOT EXISTS %s(\n" +
+                "                         id INT,\n" +
+                "                         %s VARCHAR,\n" +
+                "                         %s VARCHAR,\n" +
+                "                         %s VARCHAR\n" +
+                ");", DBConst.USER_TABLE, DBConst.NICKNAME, DBConst.PASSWORD, DBConst.EMAIL);
 
         String passports_table = String.format("CREATE TABLE IF NOT EXISTS %s(\n" +
                 "                         id INT,\n" +
@@ -71,6 +78,7 @@ public class JDBCConnector extends DBConfigs {
         execSQLUpdate(passports_table);
         execSQLUpdate(photos_table);
         execSQLUpdate(birth_table);
+        execSQLUpdate(users_table);
 	/*
 		Например:
 		String table = "CREATE TABLE IF NOT EXISTS table(id INT, name VARCHAR, PRIMARY KEY(id));";
@@ -113,10 +121,10 @@ public class JDBCConnector extends DBConfigs {
                 Class.forName("org.postgresql.Driver");
                 connection = DriverManager.getConnection(DB_URL, USER, PASS);
                 loadingPrinter.stop();
-                System.out.println("\nСоединение с БД установлено!");
+                System.out.println("\nConnected to data base!");
                 return true;
             } catch (ClassNotFoundException e) {
-                System.err.println("Ошибка JDBC драйвер не найден!");
+                System.err.println("Error: JDBC driver was not found!");
                 System.exit(1);
             } catch (SQLException e) {
                 if (e.getSQLState().equals("08001")) {

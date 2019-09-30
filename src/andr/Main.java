@@ -1,7 +1,12 @@
 package andr;
 
+import andr.DataBaseWorks.DBController;
+import andr.DataBaseWorks.JDBCConnector;
+import andr.DataBaseWorks.MailSender;
+import andr.DataBaseWorks.MailService;
 import andr.Udp.Client;
 import andr.Udp.MyPackage;
+import andr.Udp.User;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,9 +17,7 @@ import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.charset.Charset;
-import java.nio.*;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -23,6 +26,8 @@ public class Main {
     public static Hashtable<Passport, Integer> hashtable = new Hashtable<>();
     public static ByteBuffer buffer = ByteBuffer.allocate(500000);
     public static ArrayList<Integer> userIds = new ArrayList<>();
+    public static DBController db = new DBController(new JDBCConnector());
+
     public static void main(String[] args) {
         try {
             boolean isSaved = Files.exists(Paths.get("save.xml"));
@@ -50,7 +55,7 @@ public class Main {
         FileController controller = new FileController("file.xml");
         Command cmd = new Command();
         if(args.length == 0){
-            System.out.println("Введите порт (порт не был введен)");
+            System.out.println("Enter port (port was not entered)");
             System.exit(228);
         }
 
@@ -134,14 +139,49 @@ public class Main {
             client.setSocketAddress(clientSocketAdress);
             MyPackage recievedPackage = new MyPackage(buffer.array());
             buffer.clear();
-
-            if(recievedPackage.getId() == 100 && recievedPackage.getUserId() == 0) {
-                setUserId(recievedPackage);
-
-                System.out.println("Command 100");
-                client.setMyPackage(recievedPackage);
-                selectionKey.interestOps(SelectionKey.OP_WRITE);
-
+            //System.out.println(recievedPackage.getUserId());
+            //System.out.println(recievedPackage.getId());
+            if(recievedPackage.getId() == 200 && recievedPackage.getUserId() == 0) {
+                String data = new String(recievedPackage.getData());
+                String [] data2 = data.split(" ");
+                String login = data2[0];
+                String password = data2[1];
+                User user = new User(login, password);
+                System.out.println(db.isUserExists(user));
+                if(db.isUserExists(user)){
+                    setUserId(recievedPackage, user);
+                    //todo
+                    System.out.println("Command 100");
+                    recievedPackage.setData("Welcome back".concat(user.getLogin()).getBytes());
+                    client.setMyPackage(recievedPackage);
+                    selectionKey.interestOps(SelectionKey.OP_WRITE);
+                }else{
+                    client.setMyPackage(new MyPackage(-10, 0,"Invalid combination of nickname and password".getBytes()));
+                    selectionKey.interestOps(SelectionKey.OP_WRITE);
+                }
+                return;
+            }
+            if(recievedPackage.getId() == 201 && recievedPackage.getUserId() == 0) {
+                String data = new String(recievedPackage.getData());
+                String [] data2 = data.split(" ");
+                String mail = data2[0];
+                String login = data2[1];
+                String password = data2[2];
+                User user = new User(login, password, mail);
+                if(db.isUserExists(user)){
+                    client.setMyPackage(new MyPackage(-11, 0,"Such nickname already exists".getBytes()));
+                    selectionKey.interestOps(SelectionKey.OP_WRITE);
+                }else{
+                    setUserId(recievedPackage, user);
+                    db.addUser(user, Main.db.generateUID() + 1);
+                    new Thread(()->{
+                        MailSender mailSender = new MailSender(MailService.GMAIL, "shalyap3211@gmail.com", "Qwerty228");
+                        mailSender.send("7Lab PROGA parol", user.getPassword(), user.getEmail());
+                    }).start();
+                    recievedPackage.setData("Welcome ".concat(user.getLogin()).getBytes());
+                    client.setMyPackage(recievedPackage);
+                    selectionKey.interestOps(SelectionKey.OP_WRITE);
+                }
                 return;
             }
 
@@ -157,7 +197,7 @@ public class Main {
             }
             selectionKey.interestOps(SelectionKey.OP_WRITE);
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -172,8 +212,12 @@ public class Main {
     }
 
 
-    public static void setUserId(MyPackage myPackage){
-        myPackage.setUserId(userIds.size() + 1);
+    public static void setUserId(MyPackage myPackage, User user){
+            if (Main.db.isUserExists(user)){
+                myPackage.setUserId(Main.db.getUIDByNick(user.getLogin()));
+            }else {
+                myPackage.setUserId(Main.db.generateUID() + 1);
+            }
     }
 }
 

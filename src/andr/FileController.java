@@ -30,7 +30,7 @@ public class FileController {
     public FileController(String filePath){
         File file = new File(filePath);
         if (!file.exists()){
-            System.out.println("Файл не найден!");
+            System.out.println("");
         }
         isFileExists = file.exists();
         this.filePath = filePath;
@@ -63,7 +63,7 @@ public class FileController {
                 collection.put(new Passport((JSONObject) keyIter.next()), (Integer) valIter.next());
             }
         } catch (IOException e) {
-            System.out.println("Файл с коллекцией не найден!");
+            System.out.println("File with collection was not found!");
             System.exit(0);
         }
 
@@ -90,7 +90,7 @@ public class FileController {
                 collection.put((Integer)keyIter.next(), new Passport((JSONObject) valIter.next()));
             }
         } catch (IOException e) {
-            System.out.println("Файл с коллекцией не найден!");
+            System.out.println("File with collection was not found!");
             System.exit(0);
         }
 

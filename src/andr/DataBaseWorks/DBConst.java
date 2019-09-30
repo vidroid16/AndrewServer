@@ -6,8 +6,13 @@ public class DBConst {
     public static final String PASSPORT_TABLE = "passports";
     public static final String PHOTO_TABLE = "photos";
     public static final String BIRTHDATE_TABLE = "bdates";
+    public static final String USER_TABLE = "users";
 
-    public static final String USER_PASS = "user";
+    public static final String NICKNAME = "nick";
+    public static final String PASSWORD = "password";
+    public static final String EMAIL = "email";
+
+    public static final String USER_PASS = "user_login";
     public static final String NAME_PASS = "name";
     public static final String SERNAME_PASS = "sername";
     public static final String PATR_PASS = "patronymic";

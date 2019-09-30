@@ -37,7 +37,6 @@ public class Passport implements Comparable<Passport>, Serializable, iQuery {
         ID = obj.getInt("ID");
     }
 
-
     public String getName() {
         return name;
     }
