@@ -175,7 +175,7 @@ public class Main {
                     setUserId(recievedPackage, user);
                     db.addUser(user, Main.db.generateUID() + 1);
                     new Thread(()->{
-                        MailSender mailSender = new MailSender(MailService.GMAIL, "shalyap3211@gmail.com", "Qwerty228");
+                        MailSender mailSender = new MailSender(MailService.GMAIL, "---", "---");
                         mailSender.send("7Lab PROGA parol", user.getPassword(), user.getEmail());
                     }).start();
                     recievedPackage.setData("Welcome ".concat(user.getLogin()).getBytes());
